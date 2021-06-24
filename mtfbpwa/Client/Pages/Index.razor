@@ -1,0 +1,197 @@
+﻿@page "/"
+@inject IJSRuntime js
+@inject HttpClient HttpClient
+@inject ApiService ApiService
+@inject ILocalStorageService LocalStorageService
+
+<div style="padding:1vw;">
+    <h3>Music to Flow By Samples</h3>
+
+    @if (AllTracks == null)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <audio id="player">
+            <source id="playerSource" />
+        </audio>
+
+        @foreach (var track in AllTracks)
+        {
+            <div style="background-color:@BackColor(track);padding:1vw;">
+                <img src="mtfb.jpg" />
+                <span>&nbsp;</span>
+                @if (track.Playing)
+                {
+                    <img @onclick="Pause" style="height:79px;" src="gray-pause-button.png" />
+                }
+                else
+                {
+                    <img @onclick="@(e => Play(track))" style="height:89px;" src="gray-play-button.png" />
+                }
+                @if (@track.TimeLeft != "")
+                {
+                    <span>&nbsp;</span>
+                    <span style="font-size:xx-large;color:blue;font-weight:bold;">@track.TimeLeft</span>
+                }
+                @if (@track.PlayErrorMessage != "")
+                {
+                    <span>&nbsp;</span>
+                    <span style="color:red;font-weight:bold;">@track.PlayErrorMessage</span>
+                }
+                <br />
+                <span style="font-size:larger;">@track.Title (@track.Id)</span>
+
+                <br />
+                <span>Published @track.PublishDate</span>
+
+                <br />
+                @if (track.Cached)
+                {
+                    <span style="font-style:italic;">Cached</span>
+                    <br />
+                }
+                <span>@track.Description</span>
+                <br />
+            </div>
+            <hr />
+        }
+    }
+</div>
+@code
+{
+    List<Track> AllTracks;
+    Track CurrentTrack;
+
+    async Task Play(Track track)
+    {
+        track.PlayErrorMessage = "";
+
+        if (CurrentTrack != null)
+        {
+            CurrentTrack.TimeLeft = "";
+            CurrentTrack.PlayErrorMessage = "";
+            await Pause();
+        }
+        CurrentTrack = track;
+
+        if (track.Cached == false)
+        {
+            bool online = await js.InvokeAsync<bool>("IsOnline");
+            if (!online)
+            {
+                track.PlayErrorMessage = "You must go online to play non-cached audio.";
+                await InvokeAsync(StateHasChanged);
+                return;
+            }
+        }
+
+        // Good to go!
+        string urlBase = $"{HttpClient.BaseAddress}audio/";
+        await js.InvokeVoidAsync("PlayAudioFile", urlBase, track.Id, DotNetObjectReference.Create(this));
+        CurrentTrack.Playing = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    string BackColor(Track track)
+    {
+        if (track.Playing)
+        {
+            return "antiquewhite";
+        }
+        else
+        {
+            return "white";
+        }
+    }
+
+    async Task Pause()
+    {
+        await js.InvokeVoidAsync("Pause");
+        if (CurrentTrack != null)
+        {
+            CurrentTrack.Playing = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    [JSInvokable]
+    public async Task Progress(object time, object duration)
+    {
+        if (duration != null && CurrentTrack.Playing)
+        {
+            var CurrentTime = Convert.ToDouble(time.ToString());
+            var Duration = Convert.ToDouble(duration.ToString());
+            var AllSecondsLeft = Duration - CurrentTime;
+            var ts = TimeSpan.FromSeconds(AllSecondsLeft);
+            CurrentTrack.TimeLeft = $"{ts.Minutes.ToString("D2")}:{ts.Seconds.ToString("D2")}";
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    [JSInvokable]
+    public async Task Stopped(string FileName)
+    {
+        var justfilename = Path.GetFileName(FileName);
+        var track = (from x in AllTracks
+                     where x.FileName == justfilename
+                     select x).FirstOrDefault();
+        if (track != null)
+        {
+            if (track.Id > 1)
+            {
+                int id = track.Id - 1;
+                var nextTrack = (from x in AllTracks
+                                 where x.Id == id
+                                 select x).FirstOrDefault();
+                if (nextTrack != null)
+                {
+                    await Play(nextTrack);
+                }
+            }
+        }
+    }
+
+    [JSInvokable]
+    public async Task AddedToCache(string FileName)
+    {
+        var justfilename = Path.GetFileName(FileName);
+        var track = (from x in AllTracks
+                     where x.FileName == justfilename
+                     select x).FirstOrDefault();
+        if (track != null)
+        {
+            track.Cached = true;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var tracks = await ApiService.GetTracks();
+        if (tracks == null || tracks.Count == 0)
+        {
+            var json = await LocalStorageService.GetItemAsStringAsync("AllTracks");
+            if (json != null && json != "")
+            {
+                tracks = JsonSerializer.Deserialize<List<Track>>(json);
+            }
+        }
+        else
+        {
+            var json = JsonSerializer.Serialize(tracks);
+            await LocalStorageService.SetItemAsync("AllTracks", json);
+        }
+        if (tracks != null)
+        {
+            foreach (var track in tracks)
+            {
+                string url = $"{HttpClient.BaseAddress}audio/{track.FileName}";
+                track.Cached = await js.InvokeAsync<bool>("IsFileCached", url);
+                track.Playing = false;
+            }
+            AllTracks = tracks;
+        }
+    }
+}

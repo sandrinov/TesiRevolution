@@ -1,0 +1,141 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>mtfbpwa</title>
+    <base href="/" />
+    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <link href="mtfbpwa.Client.styles.css" rel="stylesheet" />
+    <link href="manifest.json" rel="manifest" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+</head>
+
+<body>
+    <div id="app">Loading...</div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script>navigator.serviceWorker.register('service-worker.js');</script>
+    <script>
+
+        // We are using the same cache (by name) as the Blazor WPA service worker does.
+        const cacheNamePrefix = 'offline-cache-';
+        const cacheName = cacheNamePrefix + 'mtfbpwa'
+
+        // the name of the currently playing/loading/caching file
+        var FILE_NAME = "";
+
+        // A reference to the .NET component (Index.razor)
+        var dotNetReference;
+
+        // set true so that we only hook the player 'ended' event ONCE
+        var onEndedHooked = false;
+
+        // pause playback
+        window.Pause = () => {
+            var audio = document.getElementById("player");
+            if (audio != null) {
+                audio.pause();
+            }
+        }
+
+        // A nice cross-platform check for network connectivity
+        window.IsOnline = () => {
+            return navigator.onLine;
+        }
+
+        // Play the file - whether downloaded or from cache
+        window.PlayAudioFile = async (urlBase, id, dotNetObject) => {
+            // Save the reference so we can call it back
+            if (dotNetReference == null) {
+                dotNetReference = dotNetObject;
+            }
+
+            // Get the file url from the id
+            var url = urlBase + id + ".mp3";
+            FILE_NAME = url;
+            console.log("FILE_NAME: " + url);
+
+            // Call isCached to determine if the file is in the cache
+            isCached().then(value => {
+                if (value) {
+                    // Cached
+                    console.log("mp3 is in cache");
+                }
+                else {
+                    // Not cached. Add it
+                    console.log("Adding mp3 to cache");
+                    window.caches.open(cacheName)
+                        .then(cache => cache.add(FILE_NAME))
+                        .then(() => {
+                            console.log('added cached file');
+                            // Notify the Blazor component
+                            dotNetReference.invokeMethodAsync("AddedToCache", FILE_NAME);
+                        })
+                };
+            });
+
+            // Get a reference to the <audio> element
+            var audio = document.getElementById("player");
+            if (audio != null) {
+
+                // If we have not yet hooked events...
+                if (onEndedHooked == false) {
+
+                    onEndedHooked = true;   // so we only do this once
+
+                    // When the audio stops playing...
+                    audio.addEventListener('ended', (event) => {
+                        console.log("STOPPED");
+                        // Notify the Blazor component
+                        dotNetReference.invokeMethodAsync("Stopped", FILE_NAME);
+                    });
+
+                    // As the audio plays..
+                    audio.addEventListener("timeupdate", function () {
+                        var currentTime = audio.currentTime;
+                        var duration = audio.duration;
+                        // Notify the Blazor component to update timer.
+                        dotNetReference.invokeMethodAsync("Progress", currentTime, duration);
+                    });
+                }
+
+                // Get the <source> element inside the <audio> element
+                var audioSource = document.getElementById("playerSource");
+                if (audioSource != null) {
+                    // Set the url as the audio to play.
+                    if (audioSource.src != url) {
+                        // This is a new file. Load it
+                        audioSource.src = url;
+                        audio.load();
+                    }
+                    audio.play();
+                }
+            }
+        }
+
+        // Called by the Blazor component
+        window.IsFileCached = (filename) => {
+            return window.caches.open(cacheName)
+                .then(cache => cache.match(filename))
+                .then(Boolean);
+        }
+
+        // Called by JavaScript
+        function isCached() {
+            return window.caches.open(cacheName)
+                .then(cache => cache.match(FILE_NAME))
+                .then(Boolean);
+        }
+
+    </script>
+</body>
+
+</html>
