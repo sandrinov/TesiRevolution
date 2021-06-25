@@ -1,0 +1,39 @@
+﻿@page "/"
+@using AppointmentsManagerBlazorApp.Components
+@using AppointmentsManagerBlazorApp.Model
+
+
+<h1>Welcome to Calls Manager</h1>
+<CallsList Title="Call effettuate" CallItems="PastCalls" OnDelete="DeletePastCall"/>
+<hr />
+<br />
+<CallsList Title="Call schedulate" CallItems="NewCalls" OnDelete="DeleteNewCall"/>
+
+@code{
+
+    List<Call> PastCalls { get; set; } =
+                new List<Call>
+                {
+                    new Call(){Id=1, Name="Call Zoom", Date = DateTime.Now, Provider="Zoom", Description="Blazor Course", Note="Use Visual Studio 2019" },
+                    new Call(){Id=2, Name="Call Teams", Date = new DateTime(2021, 6, 12), Provider="Teams", Description="C# Course", Note="Use Visual Studio Code" },
+                        };
+
+    List<Call> NewCalls { get; set; } =
+                new List<Call>
+                {
+                    new Call(){Id=1, Name="Call Zoom", Date = DateTime.Now, Provider="Zoom", Description="Blazor Course", Note="Use Visual Studio 2019" },
+                    new Call(){Id=2, Name="Call Teams", Date = new DateTime(2021, 6, 12), Provider="Teams", Description="C# Course", Note="Use Visual Studio Code" },
+                        };
+
+    public void DeletePastCall(Call call)
+    {
+        this.PastCalls.Remove(call);
+    }
+
+    public void DeleteNewCall(Call call)
+    {
+        this.NewCalls.Remove(call);
+    }
+
+
+}

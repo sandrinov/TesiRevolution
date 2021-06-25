@@ -35,6 +35,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TesiQuizManagerClientHosted
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TesiQuizManagerClientHosted.Shared", "TesiQuizManagerClientHosted\Shared\TesiQuizManagerClientHosted.Shared.csproj", "{4629A2EA-C01F-4B38-8203-7A0F2559498C}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppointmentManagerBackEnd", "AppointmentManagerBackEnd\AppointmentManagerBackEnd.csproj", "{2DD291B7-E549-4691-9A00-96951D1127F5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppointmentsManagerBlazorApp", "AppointmentsManagerBlazorApp\AppointmentsManagerBlazorApp.csproj", "{24B3A8D0-8423-4011-B1C2-4CEA18898DE3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AppointmentsManagerShared", "AppointmentsManagerShared\AppointmentsManagerShared.csproj", "{4E361830-44A4-4B08-BCE1-BD91F63BB645}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -105,6 +111,18 @@ Global
 		{4629A2EA-C01F-4B38-8203-7A0F2559498C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4629A2EA-C01F-4B38-8203-7A0F2559498C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4629A2EA-C01F-4B38-8203-7A0F2559498C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2DD291B7-E549-4691-9A00-96951D1127F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DD291B7-E549-4691-9A00-96951D1127F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DD291B7-E549-4691-9A00-96951D1127F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DD291B7-E549-4691-9A00-96951D1127F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{24B3A8D0-8423-4011-B1C2-4CEA18898DE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{24B3A8D0-8423-4011-B1C2-4CEA18898DE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{24B3A8D0-8423-4011-B1C2-4CEA18898DE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{24B3A8D0-8423-4011-B1C2-4CEA18898DE3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E361830-44A4-4B08-BCE1-BD91F63BB645}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E361830-44A4-4B08-BCE1-BD91F63BB645}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E361830-44A4-4B08-BCE1-BD91F63BB645}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E361830-44A4-4B08-BCE1-BD91F63BB645}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
