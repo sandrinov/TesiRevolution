@@ -11,7 +11,7 @@ namespace TesiQuizManagerClientHosted.Server.Controllers
 {
     [Route("[controller]")]
     [ApiController]
-    //[Authorize(Roles="Admin")]
+    [Authorize]
     public class QuizController : ControllerBase
     {
         private static readonly List<QuizItem> Quiz = new List<QuizItem>()

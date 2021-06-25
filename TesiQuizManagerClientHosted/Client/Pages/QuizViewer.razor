@@ -1,4 +1,6 @@
 ﻿@page "/quizViewer"
+@attribute [Authorize]
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
 @using TesiQuizManagerClientHosted.Shared
 @inject HttpClient Http
 
@@ -49,7 +51,15 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        quiz = await Http.GetFromJsonAsync<List<QuizItem>>("Quiz");
+        try
+        {
+            quiz = await Http.GetFromJsonAsync<List<QuizItem>>("Quiz");
+        }
+        catch ( AccessTokenNotAvailableException exception)
+        {
+
+            exception.Redirect();
+        }
     }
 
     void UpdateScore(int chosenAnswerIndex, int quizIndex)
